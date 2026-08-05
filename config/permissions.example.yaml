@@ -1,0 +1,131 @@
+maxResults: 20
+maxOffset: 1000
+
+entities:
+  Account:
+    readableFields:
+      - id
+      - name
+      - type
+      - industry
+      - website
+      - emailAddress
+      - phoneNumber
+      - billingAddressCity
+      - billingAddressState
+      - billingAddressCountry
+      - cEnrichment
+      - assignedUserId
+      - assignedUserName
+    listFields:
+      - id
+      - name
+      - type
+      - industry
+      - billingAddressCity
+      - cEnrichment
+      - assignedUserId
+      - assignedUserName
+    filterableFields:
+      - name
+      - type
+      - industry
+      - billingAddressCity
+      - cEnrichment
+      - assignedUserId
+    orderableFields: [name, type, industry, createdAt, modifiedAt]
+    primaryFilters: [customers, resellers, partners, recentlyCreated]
+
+  Contact:
+    readableFields:
+      - id
+      - salutationName
+      - firstName
+      - middleName
+      - lastName
+      - title
+      - emailAddress
+      - phoneNumber
+      - doNotCall
+      - emailAddressIsOptedOut
+      - phoneNumberIsOptedOut
+      - accountId
+      - accountName
+      - accountsIds
+      - accountsNames
+      - accountRole
+      - opportunityRole
+      - cRolle
+      - cSektor
+      - assignedUserId
+      - assignedUserName
+    listFields:
+      - id
+      - salutationName
+      - firstName
+      - lastName
+      - title
+      - accountId
+      - accountName
+      - cRolle
+      - cSektor
+      - assignedUserId
+      - assignedUserName
+    filterableFields:
+      - firstName
+      - lastName
+      - title
+      - emailAddress
+      - phoneNumber
+      - accountId
+      - accountsIds
+      - accountRole
+      - cRolle
+      - cSektor
+      - assignedUserId
+    orderableFields: [firstName, lastName, accountName, createdAt, modifiedAt]
+    primaryFilters: [portalUsers, notPortalUsers, accountActive]
+
+  Opportunity:
+    readableFields:
+      - id
+      - name
+      - amount
+      - amountCurrency
+      - accountId
+      - accountName
+      - contactId
+      - contactName
+      - contactsIds
+      - contactsNames
+      - contactRole
+      - stage
+      - probability
+      - leadSource
+      - closeDate
+      - assignedUserId
+      - assignedUserName
+    listFields:
+      - id
+      - name
+      - amount
+      - amountCurrency
+      - accountId
+      - accountName
+      - stage
+      - probability
+      - closeDate
+      - assignedUserId
+      - assignedUserName
+    filterableFields:
+      - name
+      - accountId
+      - contactId
+      - contactsIds
+      - stage
+      - amount
+      - leadSource
+      - closeDate
+      - assignedUserId
+    orderableFields: [name, amount, stage, probability, closeDate, createdAt, modifiedAt]
+    primaryFilters: [open, won, lost]

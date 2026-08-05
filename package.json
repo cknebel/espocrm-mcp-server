@@ -1,0 +1,39 @@
+{
+  "name": "espocrm-mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Read-only, allowlist-based MCP server for EspoCRM Accounts, Contacts and Opportunities.",
+  "type": "module",
+  "bin": {
+    "espocrm-mcp-server": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "config/permissions.example.yaml",
+    "README.md",
+    "SECURITY.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "yaml": "^2.9.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "tsx": "^4.20.6",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}
