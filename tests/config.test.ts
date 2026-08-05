@@ -10,5 +10,7 @@ describe("permissions configuration", () => {
     expect(config.entities.Contact.readableFields).toContain("cRolle");
     expect(config.entities.Contact.readableFields).toContain("cSektor");
     expect(config.entities.Opportunity.readableFields).not.toContain("description");
+    expect(config.entities.Email.readableFields).toContain("bodyPlain");
+    expect(config.entities.Email.readableFields).not.toContain("messageId");
   });
 });

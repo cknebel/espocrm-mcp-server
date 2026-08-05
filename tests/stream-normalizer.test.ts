@@ -27,6 +27,13 @@ const permissions: PermissionsConfig = {
       orderableFields: [],
       primaryFilters: [],
     },
+    Email: {
+      readableFields: ["id", "subject", "bodyPlain"],
+      listFields: ["id", "subject"],
+      filterableFields: [],
+      orderableFields: [],
+      primaryFilters: [],
+    },
   },
 };
 
@@ -103,6 +110,21 @@ describe("activity-stream normalization", () => {
       },
     });
     expect(JSON.stringify(result)).not.toContain("private email body");
+  });
+
+  it("does not expose an email preview stored in the generic post field", () => {
+    const result = normalizeStreamNote({
+      id: "note-email-preview",
+      type: "EmailSent",
+      post: "First lines of a confidential outgoing email",
+      data: { emailId: "email-2", emailName: "Subject" },
+    }, "Contact", permissions);
+
+    expect(result).toEqual({
+      id: "note-email-preview",
+      type: "EmailSent",
+      email: { direction: "sent", id: "email-2", subject: "Subject" },
+    });
   });
 
   it("caps long posts", () => {

@@ -129,3 +129,36 @@ entities:
       - assignedUserId
     orderableFields: [name, amount, stage, probability, closeDate, createdAt, modifiedAt]
     primaryFilters: [open, won, lost]
+
+  Email:
+    readableFields:
+      - id
+      - subject
+      - from
+      - to
+      - cc
+      - bodyPlain
+      - body
+      - isHtml
+      - status
+      - hasAttachment
+      - parentId
+      - parentType
+      - parentName
+      - dateSent
+      - isAutoReply
+      - repliedId
+      - repliesIds
+      - accountId
+      - accountName
+    listFields:
+      - id
+      - subject
+      - from
+      - to
+      - dateSent
+      - status
+      - hasAttachment
+    filterableFields: []
+    orderableFields: []
+    primaryFilters: []

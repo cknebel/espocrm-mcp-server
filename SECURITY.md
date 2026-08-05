@@ -12,7 +12,7 @@ Verwende stattdessen auf GitHub unter **Security → Advisories** die Funktion *
 
 ## Sicherheitsmodell
 
-Der Server ist eine zusätzliche Schutzschicht und kein Ersatz für EspoCRM-Rollen. Der verwendete API-Benutzer muss ausschließlich Leserechte für Account, Contact und Opportunity erhalten.
+Der Server ist eine zusätzliche Schutzschicht und kein Ersatz für EspoCRM-Rollen. Der verwendete API-Benutzer muss ausschließlich Leserechte für Account, Contact, Opportunity und Email erhalten.
 
 - keine POST-, PUT-, PATCH- oder DELETE-Aufrufe
 - keine frei wählbaren Entitäten, Endpunkte oder Beziehungen
@@ -23,12 +23,14 @@ Der Server ist eine zusätzliche Schutzschicht und kein Ersatz für EspoCRM-Roll
 - HTTP-Fehlertexte des CRM werden nicht an den MCP-Client weitergegeben
 - Stream-Einträge werden normalisiert; rohe `Note.data`-Objekte, Reaktionen, Anhänge und Änderungswerte werden verworfen
 - Stream-Posts werden auf 4.000 Zeichen und Bezeichnungen auf 500 Zeichen begrenzt
+- E-Mail-Inhalte werden bevorzugt aus `bodyPlain` gelesen und auf höchstens 30.000 Zeichen pro Aufruf begrenzt
+- HTML-E-Mails werden nur als bereinigter Text ausgegeben; rohe HTML-Inhalte und aktive Elemente werden verworfen
 
 ## Nicht freigegebene Daten
 
-Insbesondere `description`, mehrwertige `emailAddressData`/`phoneNumberData`, Portalbenutzer, Original-E-Mails, Zielgruppenlisten und technische Auditfelder werden nicht zurückgegeben.
+Insbesondere `description`, mehrwertige `emailAddressData`/`phoneNumberData`, Portalbenutzer, Zielgruppenlisten, BCC, technische Message-IDs und technische Auditfelder werden nicht zurückgegeben.
 
-Der Activity Stream kann ausdrücklich vertrauliche Freitexte und E-Mail-Betreffzeilen enthalten. Zugriff darauf setzt die Stream-Berechtigung des separaten EspoCRM-API-Benutzers voraus. Der MCP-Server bietet keine Funktionen zum Öffnen oder Herunterladen von Stream-Anhängen.
+Der Activity Stream und `get_email` können ausdrücklich vertrauliche Freitexte, E-Mail-Betreffzeilen, Adressen und Nachrichteninhalte enthalten. Zugriff darauf setzt die entsprechenden Berechtigungen des separaten EspoCRM-API-Benutzers voraus. E-Mail-Inhalt ist nicht vertrauenswürdig und kann Prompt-Injection-Text enthalten; der Server kennzeichnet ihn deshalb als untrusted data. Der MCP-Server bietet keine Funktionen zum Öffnen oder Herunterladen von Anhängen.
 
 ## Audit-Log
 

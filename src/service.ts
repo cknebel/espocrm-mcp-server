@@ -1,8 +1,9 @@
 import { AuditLogger } from "./audit.js";
+import { normalizeEmail } from "./email-normalizer.js";
 import { EspoClient, EspoError } from "./espocrm-client.js";
 import { projectRecord, secureListOptions, validateId } from "./security.js";
 import { normalizeStreamNote } from "./stream-normalizer.js";
-import type { ActivityStreamEntry, ActivityStreamOptions, EntityName, EspoRecord, ListOptions, PermissionsConfig } from "./types.js";
+import type { ActivityStreamEntry, ActivityStreamOptions, EmailContentOptions, EntityName, EspoRecord, ListOptions, PermissionsConfig, StreamEntityName } from "./types.js";
 
 const RELATED_ENTITY: Record<string, EntityName> = {
   "Account.contacts": "Contact",
@@ -83,7 +84,7 @@ export class CrmService {
     }
   }
 
-  async stream(tool: string, entity: EntityName, id: string, options: ActivityStreamOptions = {}): Promise<ActivityStreamEntry[]> {
+  async stream(tool: string, entity: StreamEntityName, id: string, options: ActivityStreamOptions = {}): Promise<ActivityStreamEntry[]> {
     const safeId = validateId(id);
     const limit = Math.min(Math.max(options.limit ?? 10, 1), this.permissions.maxResults);
     const offset = Math.min(Math.max(options.offset ?? 0, 0), this.permissions.maxOffset);
@@ -100,6 +101,27 @@ export class CrmService {
         entity,
         recordId: safeId,
         operation: "stream",
+        success: false,
+        ...(error instanceof EspoError && error.statusCode ? { statusCode: error.statusCode } : {}),
+      });
+      throw error;
+    }
+  }
+
+  async email(tool: string, id: string, options: EmailContentOptions = {}): Promise<EspoRecord> {
+    const safeId = validateId(id);
+    try {
+      const record = await this.client.read("Email", safeId);
+      const allowed = projectRecord(record, this.permissions.entities.Email.readableFields);
+      const result = normalizeEmail(allowed, options);
+      await this.audit.write({ tool, entity: "Email", recordId: safeId, operation: "read", success: true });
+      return result;
+    } catch (error) {
+      await this.audit.write({
+        tool,
+        entity: "Email",
+        recordId: safeId,
+        operation: "read",
         success: false,
         ...(error instanceof EspoError && error.statusCode ? { statusCode: error.statusCode } : {}),
       });

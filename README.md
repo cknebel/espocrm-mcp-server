@@ -1,8 +1,8 @@
 # EspoCRM MCP Server
 
-Ein lokaler, ausschließlich lesender MCP-Server für EspoCRM. Version 0.2 stellt fünfzehn eng begrenzte Werkzeuge für Accounts, Contacts und Opportunities bereit. Es gibt keinen generischen API-Zugriff und keine Schreib- oder Löschfunktion.
+Ein lokaler, ausschließlich lesender MCP-Server für EspoCRM. Version 0.3 stellt sechzehn eng begrenzte Werkzeuge für Accounts, Contacts, Opportunities und verknüpfte E-Mails bereit. Es gibt keinen generischen API-Zugriff und keine Schreib- oder Löschfunktion.
 
-> **Status:** Frühe Version `0.2.0`. Vor einem produktiven Einsatz sollten Berechtigungen, Felder und Filter gegen die eigene EspoCRM-Installation geprüft werden.
+> **Status:** Frühe Version `0.3.0`. Vor einem produktiven Einsatz sollten Berechtigungen, Felder und Filter gegen die eigene EspoCRM-Installation geprüft werden.
 
 Dieses Repository ist ein inoffizielles Community-Projekt. Es ist weder mit EspoCRM noch mit Anthropic oder Claude verbunden und wird von diesen Unternehmen nicht unterstützt oder geprüft.
 
@@ -12,17 +12,20 @@ Dieses Repository ist ein inoffizielles Community-Projekt. Es ist weder mit Espo
 - Contacts suchen, einzeln lesen sowie Accounts und Opportunities eines Kontakts auflisten
 - Opportunities suchen, einzeln lesen sowie Account und Kontakte einer Opportunity laden
 - normalisierten Activity Stream von Accounts, Contacts und Opportunities lesen
+- einzelne, im Activity Stream referenzierte E-Mails mit Klartextinhalt lesen
 - explizite Feld-, Filter-, Sortier- und Beziehungs-Allowlist
 - höchstens 20 Ergebnisse pro Anfrage
 - lokales Audit-Log ohne CRM-Inhalte oder Zugangsdaten
 
-Activity-Stream-Antworten enthalten freigegebene Posts, E-Mail-Betreffzeilen und Ereignismetadaten. Anhänge, Reaktionen, rohe EspoCRM-`data`-Objekte sowie alte und neue Werte aus Feldänderungen werden nicht ausgegeben. Post-Texte sind auf 4.000 Zeichen begrenzt.
+Activity-Stream-Antworten enthalten freigegebene Posts, E-Mail-Betreffzeilen, `emailId`-Verweise und Ereignismetadaten. Anhänge, Reaktionen, rohe EspoCRM-`data`-Objekte sowie alte und neue Werte aus Feldänderungen werden nicht ausgegeben. Post-Texte sind auf 4.000 Zeichen begrenzt.
+
+Das Werkzeug `get_email` liest eine einzelne E-Mail anhand einer `emailId`. Es bevorzugt `bodyPlain` und wandelt HTML nur dann in Text um, wenn kein Klartext vorhanden ist. Pro Aufruf werden standardmäßig 20.000 und höchstens 30.000 Zeichen ausgegeben; längere Inhalte können mit `bodyOffset` abschnittsweise gelesen werden. Anhangsinhalte, BCC, technische Message-IDs und rohe HTML-Inhalte werden nicht zurückgegeben.
 
 ## Voraussetzungen
 
 - Node.js 22 oder neuer
 - EspoCRM mit HTTPS und REST API
-- separater EspoCRM-API-Benutzer mit reinen Leserechten auf Account, Contact und Opportunity
+- separater EspoCRM-API-Benutzer mit reinen Leserechten auf Account, Contact, Opportunity und Email
 
 ## Installation
 

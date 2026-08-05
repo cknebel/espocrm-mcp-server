@@ -19,6 +19,7 @@ const permissionsSchema = z.object({
     Account: entityPermissionsSchema,
     Contact: entityPermissionsSchema,
     Opportunity: entityPermissionsSchema,
+    Email: entityPermissionsSchema,
   }),
 });
 
