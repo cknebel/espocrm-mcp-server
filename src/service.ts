@@ -1,7 +1,8 @@
 import { AuditLogger } from "./audit.js";
 import { EspoClient, EspoError } from "./espocrm-client.js";
 import { projectRecord, secureListOptions, validateId } from "./security.js";
-import type { EntityName, EspoRecord, ListOptions, PermissionsConfig } from "./types.js";
+import { normalizeStreamNote } from "./stream-normalizer.js";
+import type { ActivityStreamEntry, ActivityStreamOptions, EntityName, EspoRecord, ListOptions, PermissionsConfig } from "./types.js";
 
 const RELATED_ENTITY: Record<string, EntityName> = {
   "Account.contacts": "Contact",
@@ -75,6 +76,30 @@ export class CrmService {
         entity,
         recordId: safeId,
         operation: "related",
+        success: false,
+        ...(error instanceof EspoError && error.statusCode ? { statusCode: error.statusCode } : {}),
+      });
+      throw error;
+    }
+  }
+
+  async stream(tool: string, entity: EntityName, id: string, options: ActivityStreamOptions = {}): Promise<ActivityStreamEntry[]> {
+    const safeId = validateId(id);
+    const limit = Math.min(Math.max(options.limit ?? 10, 1), this.permissions.maxResults);
+    const offset = Math.min(Math.max(options.offset ?? 0, 0), this.permissions.maxOffset);
+    try {
+      const response = await this.client.stream(entity, safeId, limit, offset);
+      const list = response.list
+        .map((note) => normalizeStreamNote(note, entity, this.permissions))
+        .filter((note): note is ActivityStreamEntry => note !== undefined);
+      await this.audit.write({ tool, entity, recordId: safeId, operation: "stream", success: true, resultCount: list.length });
+      return list;
+    } catch (error) {
+      await this.audit.write({
+        tool,
+        entity,
+        recordId: safeId,
+        operation: "stream",
         success: false,
         ...(error instanceof EspoError && error.statusCode ? { statusCode: error.statusCode } : {}),
       });

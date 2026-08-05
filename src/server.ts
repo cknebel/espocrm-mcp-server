@@ -89,7 +89,7 @@ function addFilter(filters: SafeFilter[], attribute: string, value: unknown, typ
 }
 
 export function createServer(service: CrmService): McpServer {
-  const server = new McpServer({ name: "espocrm-mcp-server", version: "0.1.0" });
+  const server = new McpServer({ name: "espocrm-mcp-server", version: "0.2.0" });
 
   server.registerTool("search_accounts", {
     title: "Search Accounts",
@@ -114,6 +114,8 @@ export function createServer(service: CrmService): McpServer {
     async ({ id, limit, offset }) => { try { return success(await service.related("get_account_contacts", "Account", id, "contacts", compactOptions({ limit, offset }))); } catch (error) { return failure(error); } });
   server.registerTool("get_account_opportunities", { description: "List opportunities linked to an account.", inputSchema: relatedSchema, annotations },
     async ({ id, limit, offset }) => { try { return success(await service.related("get_account_opportunities", "Account", id, "opportunities", compactOptions({ limit, offset }))); } catch (error) { return failure(error); } });
+  server.registerTool("get_account_activity_stream", { description: "Read up to 20 normalized activity-stream entries of an account. Includes posts and communication events but never attachment contents or raw change values.", inputSchema: relatedSchema, annotations },
+    async ({ id, limit, offset }) => { try { return success(await service.stream("get_account_activity_stream", "Account", id, { ...(limit === undefined ? {} : { limit }), ...(offset === undefined ? {} : { offset }) })); } catch (error) { return failure(error); } });
 
   server.registerTool("search_contacts", {
     title: "Search Contacts",
@@ -138,6 +140,8 @@ export function createServer(service: CrmService): McpServer {
     async ({ id, limit, offset }) => { try { return success(await service.related("get_contact_accounts", "Contact", id, "accounts", compactOptions({ limit, offset }))); } catch (error) { return failure(error); } });
   server.registerTool("get_contact_opportunities", { description: "List opportunities linked to a contact.", inputSchema: relatedSchema, annotations },
     async ({ id, limit, offset }) => { try { return success(await service.related("get_contact_opportunities", "Contact", id, "opportunities", compactOptions({ limit, offset }))); } catch (error) { return failure(error); } });
+  server.registerTool("get_contact_activity_stream", { description: "Read up to 20 normalized activity-stream entries of a contact. Includes posts and communication events but never attachment contents or raw change values.", inputSchema: relatedSchema, annotations },
+    async ({ id, limit, offset }) => { try { return success(await service.stream("get_contact_activity_stream", "Contact", id, { ...(limit === undefined ? {} : { limit }), ...(offset === undefined ? {} : { offset }) })); } catch (error) { return failure(error); } });
 
   server.registerTool("search_opportunities", {
     title: "Search Opportunities",
@@ -176,6 +180,8 @@ export function createServer(service: CrmService): McpServer {
     });
   server.registerTool("get_opportunity_contacts", { description: "List contacts linked to an opportunity.", inputSchema: relatedSchema, annotations },
     async ({ id, limit, offset }) => { try { return success(await service.related("get_opportunity_contacts", "Opportunity", id, "contacts", compactOptions({ limit, offset }))); } catch (error) { return failure(error); } });
+  server.registerTool("get_opportunity_activity_stream", { description: "Read up to 20 normalized activity-stream entries of an opportunity. Includes posts and communication events but never attachment contents or raw change values.", inputSchema: relatedSchema, annotations },
+    async ({ id, limit, offset }) => { try { return success(await service.stream("get_opportunity_activity_stream", "Opportunity", id, { ...(limit === undefined ? {} : { limit }), ...(offset === undefined ? {} : { offset }) })); } catch (error) { return failure(error); } });
 
   return server;
 }
