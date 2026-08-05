@@ -1,5 +1,15 @@
 # Sicherheit
 
+## Unterstützte Versionen
+
+Dieses Projekt befindet sich in einer frühen Entwicklungsphase. Sicherheitskorrekturen werden nur für den aktuellen Stand des Branches `main` und die neueste veröffentlichte Version bereitgestellt.
+
+## Sicherheitsproblem melden
+
+Bitte keine Sicherheitslücken, API-Keys, CRM-Adressen, Protokolle oder CRM-Daten in öffentlichen Issues veröffentlichen.
+
+Verwende stattdessen auf GitHub unter **Security → Advisories** die Funktion **Report a vulnerability** für eine private Meldung. Falls diese Funktion vorübergehend nicht verfügbar ist, erstelle ausschließlich ein öffentliches Issue ohne vertrauliche Details und bitte dort um einen privaten Kontaktweg.
+
 ## Sicherheitsmodell
 
 Der Server ist eine zusätzliche Schutzschicht und kein Ersatz für EspoCRM-Rollen. Der verwendete API-Benutzer muss ausschließlich Leserechte für Account, Contact und Opportunity erhalten.
@@ -26,5 +36,3 @@ Das JSONL-Audit-Log enthält Zeitpunkt, Werkzeug, Entität, optionale Datensatz-
 - `.env` ist in `.gitignore` enthalten
 - für produktive Nutzung Schlüssel bevorzugt über die lokale MCP-Client-Konfiguration bereitstellen
 - API-Key regelmäßig rotieren und bei Verdacht sofort widerrufen
-
-Sicherheitsprobleme sollten privat an den Repository-Eigentümer gemeldet und nicht als öffentliches Issue mit CRM-Daten veröffentlicht werden.

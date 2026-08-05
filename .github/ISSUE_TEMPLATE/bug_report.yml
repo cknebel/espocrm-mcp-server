@@ -1,0 +1,57 @@
+name: Bug report
+description: Report a reproducible problem without including CRM data or credentials.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. Never include API keys, `.env` contents, private CRM URLs, customer data, contact details, or unredacted logs. Report security vulnerabilities privately through the Security tab.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem
+      description: What happened, and what did you expect instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Provide the smallest reproducible example using synthetic or redacted data only.
+      placeholder: |
+        1. Start the server with ...
+        2. Call the tool ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: 0.1.0 or commit SHA
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Node.js version, operating system, and MCP client. Do not include usernames or local paths.
+      placeholder: Node.js 22, macOS, Claude Desktop
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Data-safety confirmation
+      options:
+        - label: I removed API keys, CRM data, personal data, private URLs, and unredacted logs.
+          required: true
+        - label: This is not a security vulnerability requiring private disclosure.
+          required: true

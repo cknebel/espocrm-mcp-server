@@ -2,6 +2,10 @@
 
 Ein lokaler, ausschließlich lesender MCP-Server für EspoCRM. Version 0.1 stellt zwölf eng begrenzte Werkzeuge für Accounts, Contacts und Opportunities bereit. Es gibt keinen generischen API-Zugriff und keine Schreib- oder Löschfunktion.
 
+> **Status:** Frühe Version `0.1.0`. Vor einem produktiven Einsatz sollten Berechtigungen, Felder und Filter gegen die eigene EspoCRM-Installation geprüft werden.
+
+Dieses Repository ist ein inoffizielles Community-Projekt. Es ist weder mit EspoCRM noch mit Anthropic oder Claude verbunden und wird von diesen Unternehmen nicht unterstützt oder geprüft.
+
 ## Funktionen
 
 - Accounts suchen, einzeln lesen sowie Kontakte und Opportunities eines Accounts auflisten
@@ -36,6 +40,10 @@ ESPOCRM_API_KEY=dein-api-key
 Der Server ergänzt `/api/v1` automatisch. Die Feldfreigaben stehen in `config/permissions.example.yaml`.
 Die `.env` und relative Konfigurationspfade werden immer vom Projektordner aus aufgelöst. Der MCP-Client muss deshalb keine Zugangsdaten in seiner eigenen Konfiguration speichern.
 
+### Installationsspezifische Felder
+
+Die Beispiel-Allowlist und die Suchwerkzeuge enthalten die benutzerdefinierten Felder `cEnrichment`, `cRolle` und `cSektor`. Diese Felder gehören nicht zum allgemeinen EspoCRM-Standardschema. Andere Installationen müssen sie in `config/permissions.example.yaml` und den entsprechenden Filtern in `src/server.ts` anpassen oder entfernen.
+
 ## Start
 
 ```bash
@@ -49,17 +57,13 @@ Für einen MCP-Client wird der gebaute Server über Standard-Ein-/Ausgabe gestar
   "mcpServers": {
     "espocrm": {
       "command": "node",
-      "args": ["/ABSOLUTER/PFAD/espocrm-mcp-server/dist/index.js"],
-      "env": {
-        "ESPOCRM_URL": "https://crm.example.de",
-        "ESPOCRM_API_KEY": "DEIN_API_KEY",
-        "ESPOCRM_PERMISSIONS_FILE": "/ABSOLUTER/PFAD/espocrm-mcp-server/config/permissions.example.yaml",
-        "ESPOCRM_AUDIT_LOG": "/ABSOLUTER/PFAD/espocrm-mcp-server/logs/audit.jsonl"
-      }
+      "args": ["/ABSOLUTER/PFAD/espocrm-mcp-server/dist/index.js"]
     }
   }
 }
 ```
+
+Der Server lädt `.env` automatisch aus seinem Projektordner. Alternativ können die Variablen durch den MCP-Client oder die Prozessumgebung gesetzt werden.
 
 ## Entwicklung
 
@@ -69,3 +73,7 @@ npm run test:watch
 ```
 
 Siehe [SECURITY.md](SECURITY.md) für das Berechtigungs- und Datenschutzmodell.
+
+## Lizenz
+
+Veröffentlicht unter der [MIT-Lizenz](LICENSE).
