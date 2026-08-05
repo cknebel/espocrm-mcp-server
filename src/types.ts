@@ -1,4 +1,5 @@
-export type EntityName = "Account" | "Contact" | "Opportunity";
+export type StreamEntityName = "Account" | "Contact" | "Opportunity";
+export type EntityName = StreamEntityName | "Email";
 
 export type EspoRecord = Record<string, unknown> & { id?: string };
 
@@ -16,6 +17,11 @@ export interface ActivityStreamEntry extends EspoRecord {
   id: string;
   type: string;
   createdAt?: string;
+}
+
+export interface EmailContentOptions {
+  bodyOffset?: number;
+  bodyLimit?: number;
 }
 
 export type FilterOperator =

@@ -1,4 +1,4 @@
-import type { ActivityStreamEntry, EntityName, EspoRecord, PermissionsConfig } from "./types.js";
+import type { ActivityStreamEntry, EspoRecord, PermissionsConfig, StreamEntityName } from "./types.js";
 
 const MAX_POST_LENGTH = 4_000;
 const MAX_LABEL_LENGTH = 500;
@@ -40,7 +40,7 @@ function normalizeEmailData(data: Record<string, unknown>, type: string): EspoRe
 
 export function normalizeStreamNote(
   note: EspoRecord,
-  entity: EntityName,
+  entity: StreamEntityName,
   permissions: PermissionsConfig,
 ): ActivityStreamEntry | undefined {
   const id = asString(note.id);
@@ -57,7 +57,7 @@ export function normalizeStreamNote(
   addString(author, "name", note.createdByName);
   if (Object.keys(author).length > 0) result.author = author;
 
-  const post = asString(note.post);
+  const post = type === "Post" ? asString(note.post) : undefined;
   if (post) {
     const normalizedPost = truncate(post, MAX_POST_LENGTH);
     result.text = normalizedPost.value;

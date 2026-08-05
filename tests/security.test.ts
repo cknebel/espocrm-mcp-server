@@ -13,7 +13,7 @@ const entity = {
 const config: PermissionsConfig = {
   maxResults: 20,
   maxOffset: 1000,
-  entities: { Account: entity, Contact: entity, Opportunity: entity },
+  entities: { Account: entity, Contact: entity, Opportunity: entity, Email: entity },
 };
 
 describe("field projection", () => {
