@@ -90,4 +90,9 @@ export class EspoClient {
     if (options.orderBy) params.set("orderBy", options.orderBy);
     return this.getJson<EspoListResponse>(`${entity}/${encodeURIComponent(id)}/${link}`, params);
   }
+
+  async stream(entity: string, id: string, limit: number, offset: number): Promise<EspoListResponse> {
+    const params = new URLSearchParams({ maxSize: String(limit), offset: String(offset) });
+    return this.getJson<EspoListResponse>(`${entity}/${encodeURIComponent(id)}/stream`, params);
+  }
 }

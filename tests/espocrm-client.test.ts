@@ -37,4 +37,18 @@ describe("EspoClient", () => {
     await expect(client.read("Account", "1")).rejects.toThrow("HTTP 403");
     await expect(client.read("Account", "1")).rejects.not.toThrow("sensitive server detail");
   });
+
+  it("reads a bounded record stream through GET", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+      list: [{ id: "note-1", type: "Post", post: "Hello" }],
+      total: -2,
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    const client = new EspoClient({ baseUrl: "https://crm.example.test/api/v1", apiKey: "x", fetchImpl: fetchMock });
+
+    await client.stream("Contact", "contact-1", 10, 20);
+
+    const [url, request] = fetchMock.mock.calls[0] ?? [];
+    expect(String(url)).toBe("https://crm.example.test/api/v1/Contact/contact-1/stream?maxSize=10&offset=20");
+    expect(request?.method).toBe("GET");
+  });
 });

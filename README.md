@@ -1,8 +1,8 @@
 # EspoCRM MCP Server
 
-Ein lokaler, ausschließlich lesender MCP-Server für EspoCRM. Version 0.1 stellt zwölf eng begrenzte Werkzeuge für Accounts, Contacts und Opportunities bereit. Es gibt keinen generischen API-Zugriff und keine Schreib- oder Löschfunktion.
+Ein lokaler, ausschließlich lesender MCP-Server für EspoCRM. Version 0.2 stellt fünfzehn eng begrenzte Werkzeuge für Accounts, Contacts und Opportunities bereit. Es gibt keinen generischen API-Zugriff und keine Schreib- oder Löschfunktion.
 
-> **Status:** Frühe Version `0.1.0`. Vor einem produktiven Einsatz sollten Berechtigungen, Felder und Filter gegen die eigene EspoCRM-Installation geprüft werden.
+> **Status:** Frühe Version `0.2.0`. Vor einem produktiven Einsatz sollten Berechtigungen, Felder und Filter gegen die eigene EspoCRM-Installation geprüft werden.
 
 Dieses Repository ist ein inoffizielles Community-Projekt. Es ist weder mit EspoCRM noch mit Anthropic oder Claude verbunden und wird von diesen Unternehmen nicht unterstützt oder geprüft.
 
@@ -11,9 +11,12 @@ Dieses Repository ist ein inoffizielles Community-Projekt. Es ist weder mit Espo
 - Accounts suchen, einzeln lesen sowie Kontakte und Opportunities eines Accounts auflisten
 - Contacts suchen, einzeln lesen sowie Accounts und Opportunities eines Kontakts auflisten
 - Opportunities suchen, einzeln lesen sowie Account und Kontakte einer Opportunity laden
+- normalisierten Activity Stream von Accounts, Contacts und Opportunities lesen
 - explizite Feld-, Filter-, Sortier- und Beziehungs-Allowlist
 - höchstens 20 Ergebnisse pro Anfrage
 - lokales Audit-Log ohne CRM-Inhalte oder Zugangsdaten
+
+Activity-Stream-Antworten enthalten freigegebene Posts, E-Mail-Betreffzeilen und Ereignismetadaten. Anhänge, Reaktionen, rohe EspoCRM-`data`-Objekte sowie alte und neue Werte aus Feldänderungen werden nicht ausgegeben. Post-Texte sind auf 4.000 Zeichen begrenzt.
 
 ## Voraussetzungen
 

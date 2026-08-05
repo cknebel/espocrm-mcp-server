@@ -7,6 +7,17 @@ export interface EspoListResponse {
   total?: number;
 }
 
+export interface ActivityStreamOptions {
+  limit?: number;
+  offset?: number;
+}
+
+export interface ActivityStreamEntry extends EspoRecord {
+  id: string;
+  type: string;
+  createdAt?: string;
+}
+
 export type FilterOperator =
   | "equals"
   | "in"

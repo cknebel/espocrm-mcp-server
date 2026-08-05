@@ -21,10 +21,14 @@ Der Server ist eine zusätzliche Schutzschicht und kein Ersatz für EspoCRM-Roll
 - höchstens 20 Ergebnisse und 10 Filter pro Anfrage
 - HTTPS ist außerhalb von localhost verpflichtend
 - HTTP-Fehlertexte des CRM werden nicht an den MCP-Client weitergegeben
+- Stream-Einträge werden normalisiert; rohe `Note.data`-Objekte, Reaktionen, Anhänge und Änderungswerte werden verworfen
+- Stream-Posts werden auf 4.000 Zeichen und Bezeichnungen auf 500 Zeichen begrenzt
 
 ## Nicht freigegebene Daten
 
 Insbesondere `description`, mehrwertige `emailAddressData`/`phoneNumberData`, Portalbenutzer, Original-E-Mails, Zielgruppenlisten und technische Auditfelder werden nicht zurückgegeben.
+
+Der Activity Stream kann ausdrücklich vertrauliche Freitexte und E-Mail-Betreffzeilen enthalten. Zugriff darauf setzt die Stream-Berechtigung des separaten EspoCRM-API-Benutzers voraus. Der MCP-Server bietet keine Funktionen zum Öffnen oder Herunterladen von Stream-Anhängen.
 
 ## Audit-Log
 
