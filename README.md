@@ -1,12 +1,12 @@
-# EspoCRM MCP Server für Claude Desktop
+# EspoCRM MCP Server für Claude Desktop und ChatGPT
 
-Ein **lokal ausgeführter und ausschließlich lesender MCP-Server für Claude Desktop**. Claude Desktop startet den Node.js-Prozess auf dem eigenen Rechner und kommuniziert mit ihm über Standard-Ein-/Ausgabe (`stdio`). Der MCP-Server öffnet keinen öffentlichen Port und benötigt kein externes Hosting.
+Ein **lokal ausgeführter und ausschließlich lesender MCP-Server für Claude Desktop und ChatGPT**. Claude Desktop kann den Node.js-Prozess direkt über Standard-Ein-/Ausgabe (`stdio`) starten. ChatGPT erreicht denselben lokalen `stdio`-Server optional über den offiziellen OpenAI Secure MCP Tunnel. Der MCP-Server selbst öffnet in beiden Varianten keinen öffentlichen Port und benötigt kein externes Hosting.
 
-Version 0.3 stellt Claude sechzehn eng begrenzte Werkzeuge für EspoCRM Accounts, Contacts, Opportunities und verknüpfte E-Mails bereit. Es gibt keinen generischen API-Zugriff und keine Schreib- oder Löschfunktion.
+Version 0.3 stellt Claude und ChatGPT sechzehn eng begrenzte Werkzeuge für EspoCRM Accounts, Contacts, Opportunities und verknüpfte E-Mails bereit. Es gibt keinen generischen API-Zugriff und keine Schreib- oder Löschfunktion.
 
 > **Status:** Frühe Version `0.3.0`. Vor einem produktiven Einsatz sollten Berechtigungen, Felder und Filter gegen die eigene EspoCRM-Installation geprüft werden.
 
-Dieses Repository ist ein inoffizielles Community-Projekt. Es ist weder mit EspoCRM noch mit Anthropic oder Claude verbunden und wird von diesen Unternehmen nicht unterstützt oder geprüft.
+Dieses Repository ist ein inoffizielles Community-Projekt. Es ist weder mit EspoCRM noch mit Anthropic, Claude oder OpenAI verbunden und wird von diesen Unternehmen nicht unterstützt oder geprüft.
 
 ## Wie die lokale Integration funktioniert
 
@@ -16,7 +16,7 @@ Dieses Repository ist ein inoffizielles Community-Projekt. Es ist weder mit Espo
 4. Der lokale Prozess sendet die erlaubten HTTPS-GET-Anfragen an EspoCRM und filtert die Antworten über seine Allowlists.
 5. Nur die gefilterten Werkzeugergebnisse werden an Claude zurückgegeben. Beim vollständigen Beenden von Claude Desktop wird auch der lokale MCP-Prozess beendet.
 
-„Lokal“ bezieht sich auf die Ausführung und Speicherung des MCP-Servers und seiner Zugangsdaten. CRM-Inhalte, die Claude über ein Werkzeug abruft, werden zur Verarbeitung Bestandteil der Claude-Unterhaltung und unterliegen den Daten- und Datenschutzeinstellungen des verwendeten Anthropic-Kontos.
+„Lokal“ bezieht sich auf die Ausführung und Speicherung des MCP-Servers und seiner EspoCRM-Zugangsdaten. Abgerufene CRM-Inhalte werden zur Verarbeitung an den jeweils verwendeten KI-Dienst übertragen und unterliegen den Daten- und Datenschutzeinstellungen des Anthropic- beziehungsweise OpenAI-Kontos.
 
 ## Funktionen
 
@@ -35,10 +35,11 @@ Das Werkzeug `get_email` liest eine einzelne E-Mail anhand einer `emailId`. Es b
 
 ## Voraussetzungen
 
-- Claude Desktop für macOS oder Windows
 - Node.js 22 oder neuer
 - EspoCRM mit HTTPS und REST API
 - separater EspoCRM-API-Benutzer mit reinen Leserechten auf Account, Contact, Opportunity und Email
+- für Claude: Claude Desktop für macOS oder Windows
+- für ChatGPT: ein ChatGPT-Workspace mit freigeschaltetem Entwicklermodus und Zugriff auf Secure MCP Tunnel
 
 ## Installation
 
@@ -158,6 +159,118 @@ npm run build
 ```
 
 Danach Claude Desktop vollständig beenden und neu starten, damit der neu gebaute Serverprozess geladen wird.
+
+## ChatGPT über Secure MCP Tunnel konfigurieren
+
+ChatGPT kann einen lokalen `stdio`-Server nicht direkt starten. Der offizielle [OpenAI Secure MCP Tunnel](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) stellt deshalb eine verschlüsselte, ausschließlich ausgehende HTTPS-Verbindung von dem lokalen Rechner zu OpenAI her. Es wird kein eingehender Port geöffnet und der EspoCRM-API-Key bleibt in der lokalen `.env`.
+
+Die Tunnel-Funktion und der ChatGPT-Entwicklermodus sind separate Berechtigungen und können je nach Tarif beziehungsweise Workspace-Richtlinie nicht verfügbar sein. Die Tunnel-Variante eignet sich für eine private Entwickler-App im eigenen Workspace; sie ist kein öffentlicher Plugin-Endpunkt.
+
+### 1. Tunnel und Laufzeitschlüssel anlegen
+
+1. In den [Platform-Tunnel-Einstellungen](https://platform.openai.com/settings/organization/tunnels) einen Tunnel anlegen.
+2. Dem Tunnel die zuständige OpenAI-Organisation und den ChatGPT-Workspace zuordnen.
+3. Unter [Platform API Keys](https://platform.openai.com/settings/organization/api-keys) einen separaten Laufzeitschlüssel erstellen.
+4. Den Schlüssel auf **Restricted** setzen und ausschließlich **Tunnels: Read + Use** freigeben. **Tunnels: Manage** wird nur zum Anlegen oder Ändern eines Tunnels benötigt und gehört nicht in den langfristig laufenden Client.
+
+Tunnel-ID und Laufzeitschlüssel dürfen nicht in das Repository eingecheckt werden. Unter macOS oder Linux kann der Schlüssel beispielsweise außerhalb des Projekts in einer nur für den eigenen Benutzer lesbaren Datei liegen. Die verdeckte Eingabe verhindert, dass der Schlüssel in der Shell-History erscheint:
+
+```bash
+install -d -m 700 "$HOME/.config/openai/tunnel-client"
+read -s tunnel_runtime_key
+printf '%s\n' "$tunnel_runtime_key" \
+  > "$HOME/.config/openai/tunnel-client/espocrm-local.key"
+chmod 600 "$HOME/.config/openai/tunnel-client/espocrm-local.key"
+unset tunnel_runtime_key
+```
+
+### 2. `tunnel-client` installieren
+
+Lade die aktuelle, zum Betriebssystem und zur Prozessorarchitektur passende Version aus den offiziellen [`openai/tunnel-client`-Releases](https://github.com/openai/tunnel-client/releases/latest). Prüfe vor der Installation die SHA-256-Prüfsumme aus `SHA256SUMS.txt` und stelle sicher, dass `tunnel-client` anschließend über `PATH` erreichbar ist:
+
+```bash
+tunnel-client --version
+tunnel-client help quickstart
+```
+
+### 3. Lokales Tunnel-Profil erstellen
+
+Ermittle zunächst den absoluten Node.js-Pfad mit `command -v node`. Ersetze anschließend Tunnel-ID, Node.js-Pfad und Projektpfad im folgenden Beispiel:
+
+```bash
+tunnel-client init \
+  --sample sample_mcp_stdio_local \
+  --profile espocrm-local \
+  --tunnel-id tunnel_... \
+  --mcp-command "/ABSOLUTER/PFAD/ZU/node /ABSOLUTER/PFAD/ZUM/espocrm-mcp-server/dist/index.js" \
+  --control-plane-api-key-ref "file:$HOME/.config/openai/tunnel-client/espocrm-local.key"
+```
+
+Der Befehl speichert nur den Verweis auf die Schlüsseldatei. Die EspoCRM-Konfiguration wird weiterhin automatisch aus der lokalen `.env` im Projektordner geladen.
+
+Prüfe das Profil, bevor der Tunnel gestartet wird:
+
+```bash
+tunnel-client doctor --profile espocrm-local --explain
+```
+
+### 4. Tunnel starten und Status prüfen
+
+Für einen lokal verwalteten Hintergrundprozess:
+
+```bash
+tunnel-client runtimes connect \
+  --alias espocrm-local \
+  --profile espocrm-local \
+  --tunnel-id tunnel_... \
+  --runtime-api-key "file:$HOME/.config/openai/tunnel-client/espocrm-local.key" \
+  --mcp-command "/ABSOLUTER/PFAD/ZU/node /ABSOLUTER/PFAD/ZUM/espocrm-mcp-server/dist/index.js"
+
+tunnel-client runtimes status espocrm-local --json
+```
+
+Der Status muss `process_running: true`, `healthy: true` und `ready: true` melden. Nach einem Neustart des Rechners muss der lokale Prozess gegebenenfalls erneut gestartet werden:
+
+```bash
+tunnel-client runtimes connect --alias espocrm-local
+```
+
+Ohne laufenden Tunnel bleibt die App in ChatGPT sichtbar, Werkzeugaufrufe schlagen jedoch fehl. Beenden lässt sich der verwaltete Prozess mit:
+
+```bash
+tunnel-client runtimes stop espocrm-local
+```
+
+### 5. Entwickler-App in ChatGPT verbinden
+
+1. In ChatGPT unter **Settings → Security and login** den **Developer mode** aktivieren. Diese Einstellung erlaubt generell nicht verifizierte Entwickler-Apps und sollte bewusst verwendet werden.
+2. [ChatGPT Plugins](https://chatgpt.com/plugins) öffnen und **Create app** beziehungsweise **App erstellen** wählen.
+3. Einen Namen und eine Beschreibung eintragen.
+4. Unter **Connection** die Option **Tunnel** und anschließend den zuvor angelegten Tunnel wählen.
+5. Unter **Authentication** die Option **None** beziehungsweise **Keine Authentifizierung** wählen. Der Tunnel-Laufzeitschlüssel authentifiziert den lokalen Tunnel-Client bereits separat; der EspoCRM-API-Key bleibt ausschließlich auf dem Rechner.
+6. Den Sicherheitshinweis bestätigen und die App erstellen.
+7. Vor dem Verbinden kontrollieren, dass genau die erwarteten sechzehn Werkzeuge erkannt und alle als **Read/Lesen** gekennzeichnet werden.
+8. Die App mit dem Workspace verbinden.
+
+Ein erster Test in einem neuen Chat kann lauten:
+
+> Nutze EspoCRM und suche maximal drei Accounts. Nenne nur ihre Namen.
+
+Für Activity Stream und E-Mail-Inhalte:
+
+> Zeige die letzten Aktivitäten zu diesem Kontakt und lies auch die darin referenzierten E-Mails.
+
+ChatGPT überträgt nur die Ergebnisse der tatsächlich aufgerufenen Werkzeuge. Diese CRM-Inhalte werden Bestandteil der ChatGPT-Unterhaltung und unterliegen den Daten-, Aufbewahrungs- und Compliance-Einstellungen des verwendeten Workspace.
+
+### Fehlerbehebung in ChatGPT
+
+Wenn die App sichtbar ist, aber keine Daten liefert:
+
+1. `tunnel-client runtimes status espocrm-local --json` ausführen und auf `healthy: true` sowie `ready: true` prüfen.
+2. `tunnel-client doctor --profile espocrm-local --explain` ausführen.
+3. Prüfen, ob der Tunnel der richtigen Platform-Organisation und dem richtigen ChatGPT-Workspace zugeordnet ist.
+4. Prüfen, ob der Laufzeitschlüssel **Tunnels: Read + Use** besitzt.
+5. Nach Codeänderungen `npm run check`, `npm test` und `npm run build` ausführen, den Tunnel-Prozess neu starten und die App in ChatGPT über **Update/Aktualisieren** neu einlesen.
 
 ## Fehlerbehebung in Claude Desktop
 
