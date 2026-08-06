@@ -26,6 +26,19 @@ export function validateId(id: string): string {
   return id;
 }
 
+export function secureWriteData(
+  entity: EntityName,
+  data: EspoRecord,
+  config: PermissionsConfig,
+): EspoRecord {
+  const allowed = new Set(config.entities[entity].writableFields);
+  const keys = Object.keys(data);
+  if (keys.length === 0) throw new Error("At least one field must be provided.");
+  const invalid = keys.filter((field) => !allowed.has(field));
+  if (invalid.length > 0) throw new Error(`Writing field '${invalid[0]}' is not allowed.`);
+  return { ...data };
+}
+
 function validateFilter(filter: SafeFilter, permissions: EntityPermissions): SafeFilter {
   if (!permissions.filterableFields.includes(filter.attribute)) {
     throw new Error(`Filtering by '${filter.attribute}' is not allowed.`);

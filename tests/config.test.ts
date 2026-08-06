@@ -12,5 +12,9 @@ describe("permissions configuration", () => {
     expect(config.entities.Opportunity.readableFields).not.toContain("description");
     expect(config.entities.Email.readableFields).toContain("bodyPlain");
     expect(config.entities.Email.readableFields).not.toContain("messageId");
+    expect(config.entities.Meeting.writableFields).toContain("dateStart");
+    expect(config.entities.Call.writableFields).toContain("direction");
+    expect(config.entities.Task.writableFields).toContain("priority");
+    expect(config.entities.Account.writableFields).toEqual([]);
   });
 });

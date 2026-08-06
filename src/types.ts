@@ -1,5 +1,6 @@
 export type StreamEntityName = "Account" | "Contact" | "Opportunity";
-export type EntityName = StreamEntityName | "Email";
+export type ActivityEntityName = "Meeting" | "Call" | "Task";
+export type EntityName = StreamEntityName | ActivityEntityName | "Email";
 
 export type EspoRecord = Record<string, unknown> & { id?: string };
 
@@ -56,6 +57,7 @@ export interface ListOptions {
 export interface EntityPermissions {
   readableFields: string[];
   listFields: string[];
+  writableFields: string[];
   filterableFields: string[];
   orderableFields: string[];
   primaryFilters: string[];

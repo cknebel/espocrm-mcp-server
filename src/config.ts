@@ -7,6 +7,7 @@ import type { PermissionsConfig } from "./types.js";
 const entityPermissionsSchema = z.object({
   readableFields: z.array(z.string().min(1)).min(1),
   listFields: z.array(z.string().min(1)).min(1),
+  writableFields: z.array(z.string().min(1)),
   filterableFields: z.array(z.string().min(1)),
   orderableFields: z.array(z.string().min(1)),
   primaryFilters: z.array(z.string().min(1)),
@@ -20,6 +21,9 @@ const permissionsSchema = z.object({
     Contact: entityPermissionsSchema,
     Opportunity: entityPermissionsSchema,
     Email: entityPermissionsSchema,
+    Meeting: entityPermissionsSchema,
+    Call: entityPermissionsSchema,
+    Task: entityPermissionsSchema,
   }),
 });
 
@@ -48,6 +52,10 @@ export async function loadPermissions(path: string): Promise<PermissionsConfig> 
     const invalidListFields = permissions.listFields.filter((field) => !readable.has(field));
     if (invalidListFields.length > 0) {
       throw new Error(`${entity}.listFields contains non-readable fields: ${invalidListFields.join(", ")}`);
+    }
+    const invalidWritableFields = permissions.writableFields.filter((field) => !readable.has(field));
+    if (invalidWritableFields.length > 0) {
+      throw new Error(`${entity}.writableFields contains non-readable fields: ${invalidWritableFields.join(", ")}`);
     }
   }
 

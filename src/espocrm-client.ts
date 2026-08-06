@@ -61,6 +61,25 @@ export class EspoClient {
     return (await response.json()) as T;
   }
 
+  private async writeJson<T>(method: "POST" | "PUT", path: string, data: EspoRecord): Promise<T> {
+    const url = new URL(`${this.options.baseUrl}/${path.replace(/^\/+/, "")}`);
+    const response = await this.fetchImpl(url, {
+      method,
+      redirect: "error",
+      signal: AbortSignal.timeout(this.timeoutMs),
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "X-Api-Key": this.options.apiKey,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      throw new EspoError(`EspoCRM request failed with HTTP ${response.status}.`, response.status);
+    }
+    return (await response.json()) as T;
+  }
+
   async list(entity: string, fields: string[], options: ListOptions): Promise<EspoListResponse> {
     const params = new URLSearchParams({
       maxSize: String(options.limit),
@@ -78,6 +97,14 @@ export class EspoClient {
 
   async read(entity: string, id: string): Promise<EspoRecord> {
     return this.getJson<EspoRecord>(`${entity}/${encodeURIComponent(id)}`);
+  }
+
+  async create(entity: string, data: EspoRecord): Promise<EspoRecord> {
+    return this.writeJson<EspoRecord>("POST", entity, data);
+  }
+
+  async update(entity: string, id: string, data: EspoRecord): Promise<EspoRecord> {
+    return this.writeJson<EspoRecord>("PUT", `${entity}/${encodeURIComponent(id)}`, data);
   }
 
   async related(entity: string, id: string, link: string, fields: string[], options: ListOptions): Promise<EspoListResponse> {
