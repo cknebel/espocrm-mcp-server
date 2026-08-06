@@ -1,9 +1,9 @@
 import { AuditLogger } from "./audit.js";
 import { normalizeEmail } from "./email-normalizer.js";
 import { EspoClient, EspoError } from "./espocrm-client.js";
-import { projectRecord, secureListOptions, validateId } from "./security.js";
+import { projectRecord, secureListOptions, secureWriteData, validateId } from "./security.js";
 import { normalizeStreamNote } from "./stream-normalizer.js";
-import type { ActivityStreamEntry, ActivityStreamOptions, EmailContentOptions, EntityName, EspoRecord, ListOptions, PermissionsConfig, StreamEntityName } from "./types.js";
+import type { ActivityEntityName, ActivityStreamEntry, ActivityStreamOptions, EmailContentOptions, EntityName, EspoRecord, ListOptions, PermissionsConfig, StreamEntityName } from "./types.js";
 
 const RELATED_ENTITY: Record<string, EntityName> = {
   "Account.contacts": "Contact",
@@ -53,6 +53,52 @@ export class CrmService {
         entity,
         recordId: safeId,
         operation: "read",
+        success: false,
+        ...(error instanceof EspoError && error.statusCode ? { statusCode: error.statusCode } : {}),
+      });
+      throw error;
+    }
+  }
+
+  async create(tool: string, entity: ActivityEntityName, data: EspoRecord): Promise<EspoRecord> {
+    const safeData = secureWriteData(entity, data, this.permissions);
+    try {
+      const record = await this.client.create(entity, safeData);
+      const result = projectRecord(record, this.permissions.entities[entity].readableFields);
+      await this.audit.write({
+        tool,
+        entity,
+        operation: "create",
+        success: true,
+        ...(typeof record.id === "string" ? { recordId: record.id } : {}),
+      });
+      return result;
+    } catch (error) {
+      await this.audit.write({
+        tool,
+        entity,
+        operation: "create",
+        success: false,
+        ...(error instanceof EspoError && error.statusCode ? { statusCode: error.statusCode } : {}),
+      });
+      throw error;
+    }
+  }
+
+  async update(tool: string, entity: ActivityEntityName, id: string, data: EspoRecord): Promise<EspoRecord> {
+    const safeId = validateId(id);
+    const safeData = secureWriteData(entity, data, this.permissions);
+    try {
+      const record = await this.client.update(entity, safeId, safeData);
+      const result = projectRecord(record, this.permissions.entities[entity].readableFields);
+      await this.audit.write({ tool, entity, recordId: safeId, operation: "update", success: true });
+      return result;
+    } catch (error) {
+      await this.audit.write({
+        tool,
+        entity,
+        recordId: safeId,
+        operation: "update",
         success: false,
         ...(error instanceof EspoError && error.statusCode ? { statusCode: error.statusCode } : {}),
       });

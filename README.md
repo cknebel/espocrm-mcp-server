@@ -1,10 +1,10 @@
 # EspoCRM MCP Server für Claude Desktop und ChatGPT
 
-Ein **lokal ausgeführter und ausschließlich lesender MCP-Server für Claude Desktop und ChatGPT**. Claude Desktop kann den Node.js-Prozess direkt über Standard-Ein-/Ausgabe (`stdio`) starten. ChatGPT erreicht denselben lokalen `stdio`-Server optional über den offiziellen OpenAI Secure MCP Tunnel. Der MCP-Server selbst öffnet in beiden Varianten keinen öffentlichen Port und benötigt kein externes Hosting.
+Ein **lokal ausgeführter, allowlist-basierter MCP-Server für Claude Desktop und ChatGPT**. Claude Desktop kann den Node.js-Prozess direkt über Standard-Ein-/Ausgabe (`stdio`) starten. ChatGPT erreicht denselben lokalen `stdio`-Server optional über den offiziellen OpenAI Secure MCP Tunnel. Der MCP-Server selbst öffnet in beiden Varianten keinen öffentlichen Port und benötigt kein externes Hosting.
 
-Version 0.3 stellt Claude und ChatGPT sechzehn eng begrenzte Werkzeuge für EspoCRM Accounts, Contacts, Opportunities und verknüpfte E-Mails bereit. Es gibt keinen generischen API-Zugriff und keine Schreib- oder Löschfunktion.
+Version 0.4 stellt Claude und ChatGPT 28 eng begrenzte Werkzeuge für EspoCRM Accounts, Contacts, Opportunities, verknüpfte E-Mails sowie Meetings, Anrufe und Aufgaben bereit. Meetings, Anrufe und Aufgaben können gesucht, gelesen, angelegt und aktualisiert werden. Es gibt keinen generischen API-Zugriff und keine Löschfunktion.
 
-> **Status:** Frühe Version `0.3.0`. Vor einem produktiven Einsatz sollten Berechtigungen, Felder und Filter gegen die eigene EspoCRM-Installation geprüft werden.
+> **Status:** Frühe Version `0.4.0`. Vor einem produktiven Einsatz sollten Berechtigungen, Felder, Statuswerte und Filter gegen die eigene EspoCRM-Installation geprüft werden.
 
 Dieses Repository ist ein inoffizielles Community-Projekt. Es ist weder mit EspoCRM noch mit Anthropic, Claude oder OpenAI verbunden und wird von diesen Unternehmen nicht unterstützt oder geprüft.
 
@@ -13,7 +13,7 @@ Dieses Repository ist ein inoffizielles Community-Projekt. Es ist weder mit Espo
 1. Das Repository, die Konfiguration und der EspoCRM-API-Key liegen lokal auf dem Rechner.
 2. Beim Start von Claude Desktop wird `dist/index.js` als lokaler Unterprozess gestartet.
 3. Claude ruft ausschließlich die fest definierten MCP-Werkzeuge über `stdio` auf.
-4. Der lokale Prozess sendet die erlaubten HTTPS-GET-Anfragen an EspoCRM und filtert die Antworten über seine Allowlists.
+4. Der lokale Prozess sendet ausschließlich die erlaubten HTTPS-Anfragen an EspoCRM und filtert Leseantworten und Schreibfelder über seine Allowlists.
 5. Nur die gefilterten Werkzeugergebnisse werden an Claude zurückgegeben. Beim vollständigen Beenden von Claude Desktop wird auch der lokale MCP-Prozess beendet.
 
 „Lokal“ bezieht sich auf die Ausführung und Speicherung des MCP-Servers und seiner EspoCRM-Zugangsdaten. Abgerufene CRM-Inhalte werden zur Verarbeitung an den jeweils verwendeten KI-Dienst übertragen und unterliegen den Daten- und Datenschutzeinstellungen des Anthropic- beziehungsweise OpenAI-Kontos.
@@ -23,21 +23,59 @@ Dieses Repository ist ein inoffizielles Community-Projekt. Es ist weder mit Espo
 - Accounts suchen, einzeln lesen sowie Kontakte und Opportunities eines Accounts auflisten
 - Contacts suchen, einzeln lesen sowie Accounts und Opportunities eines Kontakts auflisten
 - Opportunities suchen, einzeln lesen sowie Account und Kontakte einer Opportunity laden
+- Meetings suchen, lesen, anlegen und in freigegebenen Feldern aktualisieren
+- Anrufe suchen, lesen, anlegen und in freigegebenen Feldern aktualisieren
+- Aufgaben suchen, lesen, anlegen und in freigegebenen Feldern aktualisieren
 - normalisierten Activity Stream von Accounts, Contacts und Opportunities lesen
 - einzelne, im Activity Stream referenzierte E-Mails mit Klartextinhalt lesen
 - explizite Feld-, Filter-, Sortier- und Beziehungs-Allowlist
 - höchstens 20 Ergebnisse pro Anfrage
 - lokales Audit-Log ohne CRM-Inhalte oder Zugangsdaten
 
+Die Schreibwerkzeuge führen keine Löschoperationen aus. Das Anlegen oder Aktualisieren eines Meetings beziehungsweise Anrufs versendet auch keine Einladungs- oder Absage-E-Mails. Welche Status- und Auswahlwerte gültig sind, hängt von der jeweiligen EspoCRM-Konfiguration ab.
+
 Activity-Stream-Antworten enthalten freigegebene Posts, E-Mail-Betreffzeilen, `emailId`-Verweise und Ereignismetadaten. Anhänge, Reaktionen, rohe EspoCRM-`data`-Objekte sowie alte und neue Werte aus Feldänderungen werden nicht ausgegeben. Post-Texte sind auf 4.000 Zeichen begrenzt.
 
 Das Werkzeug `get_email` liest eine einzelne E-Mail anhand einer `emailId`. Es bevorzugt `bodyPlain` und wandelt HTML nur dann in Text um, wenn kein Klartext vorhanden ist. Pro Aufruf werden standardmäßig 20.000 und höchstens 30.000 Zeichen ausgegeben; längere Inhalte können mit `bodyOffset` abschnittsweise gelesen werden. Anhangsinhalte, BCC, technische Message-IDs und rohe HTML-Inhalte werden nicht zurückgegeben.
+
+### Werkzeuge für Meetings, Anrufe und Aufgaben
+
+Für jede der drei Aktivitätsarten stehen vier Werkzeuge bereit:
+
+| Entität | Suchen | Lesen | Anlegen | Aktualisieren |
+| --- | --- | --- | --- | --- |
+| Meeting | `search_meetings` | `get_meeting` | `create_meeting` | `update_meeting` |
+| Anruf | `search_calls` | `get_call` | `create_call` | `update_call` |
+| Aufgabe | `search_tasks` | `get_task` | `create_task` | `update_task` |
+
+Die Suchwerkzeuge unterstützen unter anderem Status, CRM-Zuordnung, zuständigen Benutzer, Startzeitraum, `onlyMy`, Sortierung und Paginierung. Bei Anrufen kann zusätzlich nach Richtung, bei Aufgaben nach Priorität gefiltert werden.
+
+Meetings und Anrufe unterstützen Benutzer, Kontakte und Leads als Teilnehmer. Als übergeordnetes CRM-Objekt sind `Account`, `Contact`, `Lead`, `Opportunity` und `Case` zulässig. Die dazu benötigten IDs müssen bereits bekannt sein; der Server bietet weiterhin keine allgemeinen Werkzeuge für Leads oder Cases.
+
+Für normale Meetings und Anrufe werden `dateStart` und `dateEnd` verwendet. EspoCRM-Datumszeiten sollten im Format `YYYY-MM-DD HH:mm:ss` angegeben werden. Ganztägige Meetings verwenden `isAllDay: true` zusammen mit `dateStartDate` und `dateEndDate` im Format `YYYY-MM-DD`. Aufgaben dürfen Start- und Fälligkeitsdatum mit oder ohne Zeit enthalten.
+
+Die EspoCRM-Standardwerte sind:
+
+- Meeting/Call-Status: `Planned`, `Held`, `Not Held`
+- Anrufrichtung: `Outbound`, `Inbound`
+- Aufgabenstatus: `Not Started`, `Started`, `Completed`, `Canceled`, `Deferred`
+- Aufgabenpriorität: `Low`, `Normal`, `High`, `Urgent`
+
+EspoCRM-Administratoren können Auswahlwerte anpassen. Der Server begrenzt deren Länge, überlässt die fachliche Validierung aber EspoCRM. Update-Werkzeuge senden nur die tatsächlich angegebenen Felder. Nicht in `writableFields` freigegebene Felder werden vor dem API-Aufruf abgelehnt.
+
+Beispielanfragen im MCP-Client:
+
+> Zeige meine geplanten Meetings der nächsten sieben Tage.
+
+> Lege morgen von 10:00 bis 10:30 Uhr einen Anruf mit diesem Kontakt an.
+
+> Markiere diese Aufgabe als abgeschlossen.
 
 ## Voraussetzungen
 
 - Node.js 22 oder neuer
 - EspoCRM mit HTTPS und REST API
-- separater EspoCRM-API-Benutzer mit reinen Leserechten auf Account, Contact, Opportunity und Email
+- separater EspoCRM-API-Benutzer mit Leserechten auf Account, Contact, Opportunity, Email, Meeting, Call und Task sowie Create/Edit-Rechten ausschließlich auf Meeting, Call und Task; Delete-Rechte werden nicht benötigt
 - für Claude: Claude Desktop für macOS oder Windows
 - für ChatGPT: ein ChatGPT-Workspace mit freigeschaltetem Entwicklermodus und Zugriff auf Secure MCP Tunnel
 
@@ -63,6 +101,18 @@ Die `.env` und relative Konfigurationspfade werden immer vom Projektordner aus a
 ### Installationsspezifische Felder
 
 Die Beispiel-Allowlist und die Suchwerkzeuge enthalten die benutzerdefinierten Felder `cEnrichment`, `cRolle` und `cSektor`. Diese Felder gehören nicht zum allgemeinen EspoCRM-Standardschema. Andere Installationen müssen sie in `config/permissions.example.yaml` und den entsprechenden Filtern in `src/server.ts` anpassen oder entfernen.
+
+### Aktualisierung von Version 0.3 auf 0.4
+
+Version 0.4 erweitert das Format der Berechtigungsdatei. Wer eine eigene Datei über `ESPOCRM_PERMISSIONS_FILE` verwendet, muss sie vor dem ersten Start aktualisieren:
+
+1. Bei `Account`, `Contact`, `Opportunity` und `Email` jeweils `writableFields: []` ergänzen.
+2. Die Abschnitte `Meeting`, `Call` und `Task` aus `config/permissions.example.yaml` übernehmen und bei Bedarf an die eigene EspoCRM-Installation anpassen.
+3. Dem API-Benutzer Leserechte für Meeting, Call und Task sowie Create/Edit-Rechte für diese drei Entitäten geben. Keine Delete-Rechte vergeben.
+4. `npm run check`, `npm test` und `npm run build` ausführen.
+5. Claude Desktop beziehungsweise den Tunnel-Prozess vollständig neu starten, damit Version 0.4 und alle 28 Werkzeuge geladen werden.
+
+Fehlende Entitäten oder `writableFields` führen absichtlich zu einem Startfehler. Dadurch kann der Server nicht unbemerkt mit einer unvollständigen Sicherheitskonfiguration laufen.
 
 ## Claude Desktop konfigurieren
 
@@ -249,7 +299,7 @@ tunnel-client runtimes stop espocrm-local
 4. Unter **Connection** die Option **Tunnel** und anschließend den zuvor angelegten Tunnel wählen.
 5. Unter **Authentication** die Option **None** beziehungsweise **Keine Authentifizierung** wählen. Der Tunnel-Laufzeitschlüssel authentifiziert den lokalen Tunnel-Client bereits separat; der EspoCRM-API-Key bleibt ausschließlich auf dem Rechner.
 6. Den Sicherheitshinweis bestätigen und die App erstellen.
-7. Vor dem Verbinden kontrollieren, dass genau die erwarteten sechzehn Werkzeuge erkannt und alle als **Read/Lesen** gekennzeichnet werden.
+7. Vor dem Verbinden kontrollieren, dass genau die erwarteten 28 Werkzeuge erkannt werden. Die zwölf Werkzeuge `create_*` und `update_*` müssen als schreibend, die übrigen als **Read/Lesen** gekennzeichnet sein.
 8. Die App mit dem Workspace verbinden.
 
 Ein erster Test in einem neuen Chat kann lauten:

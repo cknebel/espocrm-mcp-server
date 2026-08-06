@@ -51,4 +51,35 @@ describe("EspoClient", () => {
     expect(String(url)).toBe("https://crm.example.test/api/v1/Contact/contact-1/stream?maxSize=10&offset=20");
     expect(request?.method).toBe("GET");
   });
+
+  it("creates records through POST with a JSON body", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ id: "meeting-1", name: "Kick-off" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }));
+    const client = new EspoClient({ baseUrl: "https://crm.example.test/api/v1", apiKey: "x", fetchImpl: fetchMock });
+
+    await client.create("Meeting", { name: "Kick-off", status: "Planned" });
+
+    const [url, request] = fetchMock.mock.calls[0] ?? [];
+    expect(String(url)).toBe("https://crm.example.test/api/v1/Meeting");
+    expect(request?.method).toBe("POST");
+    expect(new Headers(request?.headers).get("Content-Type")).toBe("application/json");
+    expect(request?.body).toBe(JSON.stringify({ name: "Kick-off", status: "Planned" }));
+  });
+
+  it("updates records through PUT with an encoded ID", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ id: "task_1", status: "Completed" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }));
+    const client = new EspoClient({ baseUrl: "https://crm.example.test/api/v1", apiKey: "x", fetchImpl: fetchMock });
+
+    await client.update("Task", "task_1", { status: "Completed" });
+
+    const [url, request] = fetchMock.mock.calls[0] ?? [];
+    expect(String(url)).toBe("https://crm.example.test/api/v1/Task/task_1");
+    expect(request?.method).toBe("PUT");
+    expect(request?.body).toBe(JSON.stringify({ status: "Completed" }));
+  });
 });

@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { projectRecord, secureListOptions, validateId } from "../src/security.js";
+import { projectRecord, secureListOptions, secureWriteData, validateId } from "../src/security.js";
 import type { PermissionsConfig } from "../src/types.js";
 
 const entity = {
   readableFields: ["id", "name"],
   listFields: ["id", "name"],
+  writableFields: ["name"],
   filterableFields: ["name"],
   orderableFields: ["name"],
   primaryFilters: ["open"],
@@ -13,7 +14,7 @@ const entity = {
 const config: PermissionsConfig = {
   maxResults: 20,
   maxOffset: 1000,
-  entities: { Account: entity, Contact: entity, Opportunity: entity, Email: entity },
+  entities: { Account: entity, Contact: entity, Opportunity: entity, Email: entity, Meeting: entity, Call: entity, Task: entity },
 };
 
 describe("field projection", () => {
@@ -43,5 +44,16 @@ describe("record IDs", () => {
   it("accepts Espo-style IDs and rejects path traversal", () => {
     expect(validateId("68931abcDEF_12")).toBe("68931abcDEF_12");
     expect(() => validateId("../User/1")).toThrow("Invalid record ID");
+  });
+});
+
+describe("write security", () => {
+  it("allows only explicitly writable fields", () => {
+    expect(secureWriteData("Meeting", { name: "Kick-off" }, config)).toEqual({ name: "Kick-off" });
+    expect(() => secureWriteData("Meeting", { createdById: "admin" }, config)).toThrow("not allowed");
+  });
+
+  it("rejects empty updates", () => {
+    expect(() => secureWriteData("Task", {}, config)).toThrow("At least one field");
   });
 });

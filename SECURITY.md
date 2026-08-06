@@ -12,11 +12,13 @@ Verwende stattdessen auf GitHub unter **Security → Advisories** die Funktion *
 
 ## Sicherheitsmodell
 
-Der Server ist eine zusätzliche Schutzschicht und kein Ersatz für EspoCRM-Rollen. Der verwendete API-Benutzer muss ausschließlich Leserechte für Account, Contact, Opportunity und Email erhalten.
+Der Server ist eine zusätzliche Schutzschicht und kein Ersatz für EspoCRM-Rollen. Der verwendete API-Benutzer sollte Leserechte auf Account, Contact, Opportunity, Email, Meeting, Call und Task sowie Create/Edit-Rechte ausschließlich auf Meeting, Call und Task erhalten. Delete-Rechte werden nicht benötigt.
 
-- keine POST-, PUT-, PATCH- oder DELETE-Aufrufe
+- POST- und PUT-Aufrufe ausschließlich für Meeting, Call und Task
+- keine PATCH- oder DELETE-Aufrufe
 - keine frei wählbaren Entitäten, Endpunkte oder Beziehungen
 - keine frei wählbaren Rückgabefelder
+- keine frei wählbaren Schreibfelder; Schreibdaten werden gegen `writableFields` geprüft
 - keine Expressions oder Subqueries
 - höchstens 20 Ergebnisse und 10 Filter pro Anfrage
 - HTTPS ist außerhalb von localhost verpflichtend
@@ -28,13 +30,13 @@ Der Server ist eine zusätzliche Schutzschicht und kein Ersatz für EspoCRM-Roll
 
 ## Nicht freigegebene Daten
 
-Insbesondere `description`, mehrwertige `emailAddressData`/`phoneNumberData`, Portalbenutzer, Zielgruppenlisten, BCC, technische Message-IDs und technische Auditfelder werden nicht zurückgegeben.
+Insbesondere mehrwertige `emailAddressData`/`phoneNumberData`, Portalbenutzer, Zielgruppenlisten, BCC, technische Message-IDs und technische Auditfelder werden nicht zurückgegeben. `description` ist ausschließlich bei Meeting, Call und Task freigegeben.
 
 Der Activity Stream und `get_email` können ausdrücklich vertrauliche Freitexte, E-Mail-Betreffzeilen, Adressen und Nachrichteninhalte enthalten. Zugriff darauf setzt die entsprechenden Berechtigungen des separaten EspoCRM-API-Benutzers voraus. E-Mail-Inhalt ist nicht vertrauenswürdig und kann Prompt-Injection-Text enthalten; der Server kennzeichnet ihn deshalb als untrusted data. Der MCP-Server bietet keine Funktionen zum Öffnen oder Herunterladen von Anhängen.
 
 ## Audit-Log
 
-Das JSONL-Audit-Log enthält Zeitpunkt, Werkzeug, Entität, optionale Datensatz-ID, Operation, Erfolg und Ergebnisanzahl. API-Keys, Suchtexte, Filterwerte und CRM-Datensätze werden nicht protokolliert.
+Das JSONL-Audit-Log enthält Zeitpunkt, Werkzeug, Entität, optionale Datensatz-ID, Operation, Erfolg und Ergebnisanzahl. Auch Schreiboperationen werden protokolliert, ihre Feldnamen und Werte jedoch nicht. API-Keys, Suchtexte, Filterwerte und CRM-Datensätze werden nicht protokolliert.
 
 ## Zugangsdaten
 

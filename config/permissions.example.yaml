@@ -26,6 +26,7 @@ entities:
       - cEnrichment
       - assignedUserId
       - assignedUserName
+    writableFields: []
     filterableFields:
       - name
       - type
@@ -71,6 +72,7 @@ entities:
       - cSektor
       - assignedUserId
       - assignedUserName
+    writableFields: []
     filterableFields:
       - firstName
       - lastName
@@ -117,6 +119,7 @@ entities:
       - closeDate
       - assignedUserId
       - assignedUserName
+    writableFields: []
     filterableFields:
       - name
       - accountId
@@ -159,6 +162,192 @@ entities:
       - dateSent
       - status
       - hasAttachment
+    writableFields: []
     filterableFields: []
     orderableFields: []
     primaryFilters: []
+
+  Meeting:
+    readableFields: &eventReadableFields
+      - id
+      - name
+      - status
+      - dateStart
+      - dateEnd
+      - dateStartDate
+      - dateEndDate
+      - isAllDay
+      - description
+      - parentId
+      - parentType
+      - parentName
+      - assignedUserId
+      - assignedUserName
+      - usersIds
+      - usersNames
+      - contactsIds
+      - contactsNames
+      - leadsIds
+      - leadsNames
+      - createdAt
+      - modifiedAt
+    listFields: &eventListFields
+      - id
+      - name
+      - status
+      - dateStart
+      - dateEnd
+      - dateStartDate
+      - dateEndDate
+      - isAllDay
+      - parentId
+      - parentType
+      - parentName
+      - assignedUserId
+      - assignedUserName
+    writableFields: &eventWritableFields
+      - name
+      - status
+      - dateStart
+      - dateEnd
+      - dateStartDate
+      - dateEndDate
+      - isAllDay
+      - description
+      - parentId
+      - parentType
+      - assignedUserId
+      - usersIds
+      - contactsIds
+      - leadsIds
+    filterableFields: &eventFilterableFields
+      - name
+      - status
+      - dateStart
+      - dateEnd
+      - parentId
+      - parentType
+      - assignedUserId
+      - usersIds
+      - contactsIds
+      - leadsIds
+    orderableFields: &eventOrderableFields [name, status, dateStart, dateEnd, createdAt, modifiedAt]
+    primaryFilters: &eventPrimaryFilters [planned, held, todays]
+
+  Call:
+    readableFields:
+      - id
+      - name
+      - status
+      - dateStart
+      - dateEnd
+      - description
+      - parentId
+      - parentType
+      - parentName
+      - assignedUserId
+      - assignedUserName
+      - usersIds
+      - usersNames
+      - contactsIds
+      - contactsNames
+      - leadsIds
+      - leadsNames
+      - createdAt
+      - modifiedAt
+      - direction
+    listFields:
+      - id
+      - name
+      - status
+      - dateStart
+      - dateEnd
+      - parentId
+      - parentType
+      - parentName
+      - assignedUserId
+      - assignedUserName
+      - direction
+    writableFields:
+      - name
+      - status
+      - dateStart
+      - dateEnd
+      - description
+      - parentId
+      - parentType
+      - assignedUserId
+      - usersIds
+      - contactsIds
+      - leadsIds
+      - direction
+    filterableFields:
+      - name
+      - status
+      - dateStart
+      - dateEnd
+      - parentId
+      - parentType
+      - assignedUserId
+      - usersIds
+      - contactsIds
+      - leadsIds
+      - direction
+    orderableFields: *eventOrderableFields
+    primaryFilters: *eventPrimaryFilters
+
+  Task:
+    readableFields:
+      - id
+      - name
+      - status
+      - priority
+      - dateStart
+      - dateEnd
+      - dateStartDate
+      - dateEndDate
+      - description
+      - parentId
+      - parentType
+      - parentName
+      - assignedUserId
+      - assignedUserName
+      - createdAt
+      - modifiedAt
+    listFields:
+      - id
+      - name
+      - status
+      - priority
+      - dateStart
+      - dateEnd
+      - dateStartDate
+      - dateEndDate
+      - parentId
+      - parentType
+      - parentName
+      - assignedUserId
+      - assignedUserName
+    writableFields:
+      - name
+      - status
+      - priority
+      - dateStart
+      - dateEnd
+      - dateStartDate
+      - dateEndDate
+      - description
+      - parentId
+      - parentType
+      - assignedUserId
+    filterableFields:
+      - name
+      - status
+      - priority
+      - dateStart
+      - dateEnd
+      - parentId
+      - parentType
+      - assignedUserId
+    orderableFields: [name, status, priority, dateStart, dateEnd, createdAt, modifiedAt]
+    primaryFilters: [actual, completed, deferred, todays, overdue]

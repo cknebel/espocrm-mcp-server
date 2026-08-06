@@ -5,7 +5,7 @@ export interface AuditEntry {
   tool: string;
   entity: string;
   recordId?: string;
-  operation: "list" | "read" | "related" | "stream";
+  operation: "list" | "read" | "related" | "stream" | "create" | "update";
   success: boolean;
   resultCount?: number;
   statusCode?: number;
