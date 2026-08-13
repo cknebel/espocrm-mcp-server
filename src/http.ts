@@ -16,19 +16,9 @@ function sendJson(res: ServerResponse, statusCode: number, body: unknown): void 
   res.end(JSON.stringify(body));
 }
 
-function unauthorized(res: ServerResponse): void {
-  res.writeHead(401, { "WWW-Authenticate": "Bearer", "Content-Type": "application/json" });
-  res.end(JSON.stringify({ error: "Unauthorized" }));
-}
-
 function methodNotAllowed(res: ServerResponse): void {
   res.writeHead(405, { Allow: "GET, POST, DELETE", "Content-Type": "application/json" });
   res.end(JSON.stringify({ error: "Method not allowed" }));
-}
-
-function acceptsRequest(req: IncomingMessage, config: HttpConfig): boolean {
-  if (!config.bearerToken) return true;
-  return req.headers.authorization === `Bearer ${config.bearerToken}`;
 }
 
 async function readJsonBody(req: IncomingMessage): Promise<unknown> {
@@ -65,10 +55,6 @@ async function main(): Promise<void> {
       }
       if (!isMcpPath(req, config)) {
         sendJson(res, 404, { error: "Not found" });
-        return;
-      }
-      if (!acceptsRequest(req, config)) {
-        unauthorized(res);
         return;
       }
       if (req.method !== "GET" && req.method !== "POST" && req.method !== "DELETE") {

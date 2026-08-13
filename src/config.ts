@@ -38,7 +38,6 @@ export interface HttpConfig {
   host: string;
   port: number;
   path: string;
-  bearerToken: string | undefined;
   allowedHosts: string[];
   allowedOrigins: string[];
 }
@@ -113,14 +112,12 @@ function parseList(value: string | undefined): string[] {
 
 export function loadHttpConfig(env: NodeJS.ProcessEnv = process.env): HttpConfig {
   const host = env.MCP_HTTP_HOST?.trim() || "127.0.0.1";
-  const bearerToken = env.MCP_HTTP_BEARER_TOKEN?.trim();
   const defaultAllowedHosts = host === "0.0.0.0" || host === "::" ? [] : [host];
 
   return {
     host,
     port: parsePort(env.MCP_HTTP_PORT),
     path: parsePath(env.MCP_HTTP_PATH),
-    bearerToken: bearerToken || undefined,
     allowedHosts: parseList(env.MCP_HTTP_ALLOWED_HOSTS).length > 0
       ? parseList(env.MCP_HTTP_ALLOWED_HOSTS)
       : defaultAllowedHosts,

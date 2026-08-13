@@ -25,25 +25,22 @@ describe("HTTP transport configuration", () => {
       host: "127.0.0.1",
       port: 3000,
       path: "/mcp",
-      bearerToken: undefined,
       allowedHosts: ["127.0.0.1"],
       allowedOrigins: [],
     });
   });
 
-  it("parses explicit host, port, path, bearer token and allowlists", () => {
+  it("parses explicit host, port, path and allowlists", () => {
     expect(loadHttpConfig({
       MCP_HTTP_HOST: "0.0.0.0",
       MCP_HTTP_PORT: "3010",
       MCP_HTTP_PATH: "/crm-mcp",
-      MCP_HTTP_BEARER_TOKEN: "secret",
       MCP_HTTP_ALLOWED_HOSTS: "crm.example.de, 127.0.0.1",
       MCP_HTTP_ALLOWED_ORIGINS: "https://chatgpt.com, https://claude.ai",
     })).toEqual({
       host: "0.0.0.0",
       port: 3010,
       path: "/crm-mcp",
-      bearerToken: "secret",
       allowedHosts: ["crm.example.de", "127.0.0.1"],
       allowedOrigins: ["https://chatgpt.com", "https://claude.ai"],
     });
