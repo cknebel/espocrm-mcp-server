@@ -11,7 +11,6 @@ services:
       MCP_HTTP_PATH: /mcp
       MCP_HTTP_ALLOWED_HOSTS: ${MCP_HTTP_ALLOWED_HOSTS:-espocrm-mcp.example.de,127.0.0.1,localhost}
       MCP_HTTP_ALLOWED_ORIGINS: ${MCP_HTTP_ALLOWED_ORIGINS:-https://chatgpt.com,https://claude.ai}
-      MCP_HTTP_BEARER_TOKEN: ${MCP_HTTP_BEARER_TOKEN:?Set MCP_HTTP_BEARER_TOKEN in .env}
     ports:
       - "127.0.0.1:3000:3000"
     volumes:
