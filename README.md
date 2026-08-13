@@ -1,6 +1,8 @@
 # EspoCRM MCP Server für Claude Desktop und ChatGPT
 
-Ein **lokal ausgeführter, allowlist-basierter MCP-Server für Claude Desktop und ChatGPT**. Claude Desktop kann den Node.js-Prozess direkt über Standard-Ein-/Ausgabe (`stdio`) starten. ChatGPT erreicht denselben lokalen `stdio`-Server optional über den offiziellen OpenAI Secure MCP Tunnel. Der MCP-Server selbst öffnet in beiden Varianten keinen öffentlichen Port und benötigt kein externes Hosting.
+Ein **lokal ausgeführter, allowlist-basierter MCP-Server für Claude Desktop und ChatGPT**. Claude Desktop kann den Node.js-Prozess direkt über Standard-Ein-/Ausgabe (`stdio`) starten. ChatGPT erreicht denselben lokalen `stdio`-Server optional über den offiziellen OpenAI Secure MCP Tunnel.
+
+Zusätzlich kann derselbe Server als **Streamable-HTTP-MCP-Endpunkt** gestartet werden, um ihn hinter einem TLS-Reverse-Proxy wie Caddy als Remote-MCP-Server bereitzustellen. Der HTTP-Modus bindet standardmäßig nur an `127.0.0.1` und ist für den Betrieb hinter einem Proxy gedacht, nicht als ungeschützter öffentlicher Port.
 
 Version 0.4 stellt Claude und ChatGPT 28 eng begrenzte Werkzeuge für EspoCRM Accounts, Contacts, Opportunities, verknüpfte E-Mails sowie Meetings, Anrufe und Aufgaben bereit. Meetings, Anrufe und Aufgaben können gesucht, gelesen, angelegt und aktualisiert werden. Es gibt keinen generischen API-Zugriff und keine Löschfunktion.
 
@@ -97,6 +99,100 @@ ESPOCRM_API_KEY=dein-api-key
 
 Der Server ergänzt `/api/v1` automatisch. Die Feldfreigaben stehen in `config/permissions.example.yaml`.
 Die `.env` und relative Konfigurationspfade werden immer vom Projektordner aus aufgelöst. Der MCP-Client muss deshalb keine Zugangsdaten in seiner eigenen Konfiguration speichern.
+
+### Optionaler HTTP-Modus
+
+Für Remote-MCP kann der Server mit Streamable HTTP gestartet werden:
+
+```bash
+npm run build
+npm run start:http
+```
+
+Standardmäßig lauscht er nur lokal unter:
+
+```text
+http://127.0.0.1:3000/mcp
+```
+
+Der Healthcheck liegt unter:
+
+```text
+http://127.0.0.1:3000/healthz
+```
+
+Optionale Umgebungsvariablen:
+
+```env
+MCP_HTTP_HOST=127.0.0.1
+MCP_HTTP_PORT=3000
+MCP_HTTP_PATH=/mcp
+MCP_HTTP_BEARER_TOKEN=ein-langer-zufaelliger-token
+MCP_HTTP_ALLOWED_HOSTS=espocrm-mcp.example.de,127.0.0.1
+MCP_HTTP_ALLOWED_ORIGINS=https://chatgpt.com,https://claude.ai
+```
+
+`MCP_HTTP_BEARER_TOKEN` ist eine zusätzliche Schutzschicht im Node-Prozess. Wenn bereits Caddy den Bearer Token prüft, kann sie trotzdem gesetzt bleiben, sofern Caddy den `Authorization`-Header an den Upstream weitergibt. Bei `MCP_HTTP_HOST=0.0.0.0` sollte `MCP_HTTP_ALLOWED_HOSTS` explizit gesetzt werden, damit die DNS-Rebinding-Prüfung nur erwartete Hostnamen akzeptiert.
+
+Für Docker steht ein Multi-Stage-`Dockerfile` und eine `docker-compose.yml` bereit. Der Compose-Dienst veröffentlicht den Container-Port ausschließlich auf `127.0.0.1` des Hosts:
+
+```bash
+docker compose up -d --build
+```
+
+Der lokale Endpunkt ist dann:
+
+```text
+http://127.0.0.1:3000/mcp
+```
+
+Beispiel für Caddy mit TLS und Bearer Token, wenn Caddy auf demselben Host läuft und den auf `127.0.0.1` gebundenen Compose-Port nutzt:
+
+```caddyfile
+espocrm-mcp.example.de {
+  encode zstd gzip
+
+  route {
+    @missing_or_wrong_token {
+      not header Authorization "Bearer {$ESPOCRM_MCP_BEARER_TOKEN}"
+    }
+    respond @missing_or_wrong_token 401
+
+    @mcp path /mcp /mcp/*
+    reverse_proxy @mcp 127.0.0.1:3000
+
+    respond 404
+  }
+}
+```
+
+Wenn Caddy im selben Docker-Netzwerk wie der MCP-Container läuft, kann statt `127.0.0.1:3000` der Compose-Dienstname verwendet werden. In diesem Fall sollte der Port nicht zusätzlich über `ports` veröffentlicht werden, sondern nur per `expose` im Compose-Netz sichtbar sein:
+
+```caddyfile
+espocrm-mcp.example.de {
+  encode zstd gzip
+
+  route {
+    @missing_or_wrong_token {
+      not header Authorization "Bearer {$ESPOCRM_MCP_BEARER_TOKEN}"
+    }
+    respond @missing_or_wrong_token 401
+
+    @mcp path /mcp /mcp/*
+    reverse_proxy @mcp espocrm-mcp:3000
+
+    respond 404
+  }
+}
+```
+
+Der öffentliche Remote-MCP-Endpunkt ist dann:
+
+```text
+https://espocrm-mcp.example.de/mcp
+```
+
+Öffentlich erreichbar ist in beiden Varianten ausschließlich Caddy. Der Node-Prozess spricht im Container normales HTTP; HTTPS wird am Reverse-Proxy terminiert.
 
 ### Installationsspezifische Felder
 
@@ -213,6 +309,8 @@ Danach Claude Desktop vollständig beenden und neu starten, damit der neu gebaut
 ## ChatGPT über Secure MCP Tunnel konfigurieren
 
 ChatGPT kann einen lokalen `stdio`-Server nicht direkt starten. Der offizielle [OpenAI Secure MCP Tunnel](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) stellt deshalb eine verschlüsselte, ausschließlich ausgehende HTTPS-Verbindung von dem lokalen Rechner zu OpenAI her. Es wird kein eingehender Port geöffnet und der EspoCRM-API-Key bleibt in der lokalen `.env`.
+
+Alternativ kann der oben beschriebene HTTP-Modus als Remote-MCP-Endpunkt hinter Caddy verwendet werden. Dann muss in ChatGPT der HTTPS-Endpunkt des Reverse-Proxys eingetragen werden, nicht die lokale `127.0.0.1`-Adresse.
 
 Die Tunnel-Funktion und der ChatGPT-Entwicklermodus sind separate Berechtigungen und können je nach Tarif beziehungsweise Workspace-Richtlinie nicht verfügbar sein. Die Tunnel-Variante eignet sich für eine private Entwickler-App im eigenen Workspace; sie ist kein öffentlicher Plugin-Endpunkt.
 

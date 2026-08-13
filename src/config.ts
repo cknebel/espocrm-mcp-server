@@ -34,6 +34,15 @@ export interface AppConfig {
   auditLogPath: string;
 }
 
+export interface HttpConfig {
+  host: string;
+  port: number;
+  path: string;
+  bearerToken: string | undefined;
+  allowedHosts: string[];
+  allowedOrigins: string[];
+}
+
 function normalizeBaseUrl(input: string): string {
   const value = input.replace(/\/+$/, "");
   const url = new URL(value);
@@ -78,5 +87,43 @@ export async function loadConfig(
     apiKey,
     permissions: await loadPermissions(permissionsPath),
     auditLogPath: resolve(baseDirectory, env.ESPOCRM_AUDIT_LOG ?? "logs/audit.jsonl"),
+  };
+}
+
+function parsePort(value: string | undefined): number {
+  const port = Number(value ?? "3000");
+  if (!Number.isInteger(port) || port < 1 || port > 65_535) {
+    throw new Error("MCP_HTTP_PORT must be an integer between 1 and 65535.");
+  }
+  return port;
+}
+
+function parsePath(value: string | undefined): string {
+  const path = value?.trim() || "/mcp";
+  if (!path.startsWith("/")) throw new Error("MCP_HTTP_PATH must start with '/'.");
+  return path;
+}
+
+function parseList(value: string | undefined): string[] {
+  return (value ?? "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+}
+
+export function loadHttpConfig(env: NodeJS.ProcessEnv = process.env): HttpConfig {
+  const host = env.MCP_HTTP_HOST?.trim() || "127.0.0.1";
+  const bearerToken = env.MCP_HTTP_BEARER_TOKEN?.trim();
+  const defaultAllowedHosts = host === "0.0.0.0" || host === "::" ? [] : [host];
+
+  return {
+    host,
+    port: parsePort(env.MCP_HTTP_PORT),
+    path: parsePath(env.MCP_HTTP_PATH),
+    bearerToken: bearerToken || undefined,
+    allowedHosts: parseList(env.MCP_HTTP_ALLOWED_HOSTS).length > 0
+      ? parseList(env.MCP_HTTP_ALLOWED_HOSTS)
+      : defaultAllowedHosts,
+    allowedOrigins: parseList(env.MCP_HTTP_ALLOWED_ORIGINS),
   };
 }

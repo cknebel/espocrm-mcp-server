@@ -27,6 +27,9 @@ Der Server ist eine zusätzliche Schutzschicht und kein Ersatz für EspoCRM-Roll
 - Stream-Posts werden auf 4.000 Zeichen und Bezeichnungen auf 500 Zeichen begrenzt
 - E-Mail-Inhalte werden bevorzugt aus `bodyPlain` gelesen und auf höchstens 30.000 Zeichen pro Aufruf begrenzt
 - HTML-E-Mails werden nur als bereinigter Text ausgegeben; rohe HTML-Inhalte und aktive Elemente werden verworfen
+- der Streamable-HTTP-Modus bindet standardmäßig nur an `127.0.0.1`
+- der Streamable-HTTP-Modus aktiviert DNS-Rebinding-Schutz und akzeptiert nur konfigurierte Host-/Origin-Werte
+- ein optionaler `MCP_HTTP_BEARER_TOKEN` kann zusätzlich zum Reverse-Proxy geprüft werden
 
 ## Nicht freigegebene Daten
 
@@ -44,3 +47,6 @@ Das JSONL-Audit-Log enthält Zeitpunkt, Werkzeug, Entität, optionale Datensatz-
 - `.env` ist in `.gitignore` enthalten
 - für produktive Nutzung Schlüssel bevorzugt über die lokale MCP-Client-Konfiguration bereitstellen
 - API-Key regelmäßig rotieren und bei Verdacht sofort widerrufen
+- Remote-MCP nur über HTTPS bereitstellen; TLS sollte durch einen Reverse-Proxy wie Caddy terminiert werden
+- statische Bearer Tokens nur als private Einzelintegration verwenden und lang, zufällig sowie regelmäßig rotiert halten
+- Docker-Ports nur an `127.0.0.1` binden oder ausschließlich in einem privaten Docker-Netzwerk per Dienstname an Caddy weiterreichen
