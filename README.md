@@ -248,6 +248,8 @@ Der Compose-Dienst veröffentlicht den Container-Port standardmäßig nur auf `1
 docker compose up -d --build
 ```
 
+Das Audit-Log wird standardmäßig in einem benannten Docker-Volume `espocrm-mcp-logs` gespeichert. Wenn stattdessen ein Host-Verzeichnis wie `./logs:/app/logs` gemountet wird, muss dieses Verzeichnis für den non-root Container-User schreibbar sein.
+
 Lokale Prüfung auf dem Server:
 
 ```bash
@@ -429,6 +431,13 @@ Wenn ChatGPT oder Claude den Remote-MCP-Endpunkt nicht erreichen:
 4. Prüfen, ob der Client denselben Bearer Token sendet, den Caddy erwartet.
 5. Prüfen, ob `MCP_HTTP_ALLOWED_HOSTS` den öffentlichen Hostnamen enthält.
 6. Caddy-Logs und Container-Logs prüfen.
+
+Wenn der Container `EACCES: permission denied, open '/app/logs/audit.jsonl'` meldet, ist ein gemountetes Log-Verzeichnis nicht für den Container-User schreibbar. Bei einem Bind-Mount `./logs:/app/logs` kann das auf dem Server so repariert werden:
+
+```bash
+docker compose run --rm --user root espocrm-mcp chown -R mcp:mcp /app/logs
+docker compose up -d
+```
 
 ## Entwicklung
 

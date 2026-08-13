@@ -14,6 +14,9 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
     volumes:
-      - ./logs:/app/logs
+      - espocrm-mcp-logs:/app/logs
       # Optional: mount a custom permissions file and set ESPOCRM_PERMISSIONS_FILE in .env.
       # - ./config/permissions.example.yaml:/app/config/permissions.yaml:ro
+
+volumes:
+  espocrm-mcp-logs:
