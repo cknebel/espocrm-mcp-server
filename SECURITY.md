@@ -29,7 +29,7 @@ Der Server ist eine zusätzliche Schutzschicht und kein Ersatz für EspoCRM-Roll
 - HTML-E-Mails werden nur als bereinigter Text ausgegeben; rohe HTML-Inhalte und aktive Elemente werden verworfen
 - der Streamable-HTTP-Modus bindet standardmäßig nur an `127.0.0.1`
 - der Streamable-HTTP-Modus aktiviert DNS-Rebinding-Schutz und akzeptiert nur konfigurierte Host-/Origin-Werte
-- ein optionaler `MCP_HTTP_BEARER_TOKEN` kann zusätzlich zum Reverse-Proxy geprüft werden
+- `MCP_HTTP_BEARER_TOKEN` schützt den Remote-MCP-Zugriff am Reverse-Proxy und im Node-Prozess
 
 ## Nicht freigegebene Daten
 
