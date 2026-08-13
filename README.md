@@ -238,7 +238,11 @@ MCP_HTTP_PORT=3000
 MCP_HTTP_PATH=/mcp
 MCP_HTTP_ALLOWED_HOSTS=espocrm-mcp.example.de,127.0.0.1,localhost
 MCP_HTTP_ALLOWED_ORIGINS=https://chatgpt.com,https://claude.ai
+ESPOCRM_MCP_BEARER_TOKEN=ein-langer-zufaelliger-token
+MCP_HTTP_BEARER_TOKEN=ein-langer-zufaelliger-token
 ```
+
+`ESPOCRM_MCP_BEARER_TOKEN` wird von den Caddyfile-Beispielen verwendet und muss deshalb in der Umgebung des Caddy-Prozesses verfügbar sein. `MCP_HTTP_BEARER_TOKEN` wird vom Node-MCP-Server selbst geprüft. Wenn beide Schichten denselben `Authorization`-Header prüfen sollen, setze beide Werte gleich.
 
 Der Compose-Dienst veröffentlicht den Container-Port standardmäßig nur auf `127.0.0.1` des Hosts:
 
