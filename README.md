@@ -238,11 +238,10 @@ MCP_HTTP_PORT=3000
 MCP_HTTP_PATH=/mcp
 MCP_HTTP_ALLOWED_HOSTS=espocrm-mcp.example.de,127.0.0.1,localhost
 MCP_HTTP_ALLOWED_ORIGINS=https://chatgpt.com,https://claude.ai
-ESPOCRM_MCP_BEARER_TOKEN=ein-langer-zufaelliger-token
 MCP_HTTP_BEARER_TOKEN=ein-langer-zufaelliger-token
 ```
 
-`ESPOCRM_MCP_BEARER_TOKEN` wird von den Caddyfile-Beispielen verwendet und muss deshalb in der Umgebung des Caddy-Prozesses verfügbar sein. `MCP_HTTP_BEARER_TOKEN` wird vom Node-MCP-Server selbst geprüft. Wenn beide Schichten denselben `Authorization`-Header prüfen sollen, setze beide Werte gleich.
+`MCP_HTTP_BEARER_TOKEN` ist der eine Bearer Token für den Remote-Zugriff. Die Caddyfile-Beispiele prüfen diesen Wert am Reverse-Proxy; der Node-MCP-Server prüft denselben Header zusätzlich selbst. Der Wert muss deshalb in der Umgebung des Caddy-Prozesses und des MCP-Containers verfügbar sein.
 
 Der Compose-Dienst veröffentlicht den Container-Port standardmäßig nur auf `127.0.0.1` des Hosts:
 
@@ -272,7 +271,7 @@ espocrm-mcp.example.de {
 
   route {
     @missing_or_wrong_token {
-      not header Authorization "Bearer {$ESPOCRM_MCP_BEARER_TOKEN}"
+      not header Authorization "Bearer {$MCP_HTTP_BEARER_TOKEN}"
     }
     respond @missing_or_wrong_token 401
 
@@ -292,7 +291,7 @@ espocrm-mcp.example.de {
 
   route {
     @missing_or_wrong_token {
-      not header Authorization "Bearer {$ESPOCRM_MCP_BEARER_TOKEN}"
+      not header Authorization "Bearer {$MCP_HTTP_BEARER_TOKEN}"
     }
     respond @missing_or_wrong_token 401
 
@@ -310,7 +309,7 @@ Der öffentliche Remote-MCP-Endpunkt ist dann:
 https://espocrm-mcp.example.de/mcp
 ```
 
-Der Bearer Token liegt im Beispiel als Caddy-Umgebungsvariable `ESPOCRM_MCP_BEARER_TOKEN`. Optional kann zusätzlich `MCP_HTTP_BEARER_TOKEN` im Node-Prozess gesetzt werden. Dann muss Caddy den `Authorization`-Header unverändert an den Upstream weitergeben.
+Der Bearer Token liegt im Beispiel als Umgebungsvariable `MCP_HTTP_BEARER_TOKEN` vor. Caddy prüft ihn zuerst und gibt den `Authorization`-Header anschließend unverändert an den MCP-Server weiter, der denselben Token noch einmal prüft.
 
 ### ChatGPT und Claude remote anbinden
 
@@ -320,7 +319,7 @@ Bei der Remote-Variante wird nicht der lokale `stdio`-Server eingebunden, sonder
 https://espocrm-mcp.example.de/mcp
 ```
 
-In ChatGPT wird dieser Endpunkt als Remote-MCP-App beziehungsweise Custom Connector mit Bearer-Token-Authentifizierung eingetragen. Der Token muss zu `ESPOCRM_MCP_BEARER_TOKEN` im Caddyfile passen.
+In ChatGPT wird dieser Endpunkt als Remote-MCP-App beziehungsweise Custom Connector mit Bearer-Token-Authentifizierung eingetragen. Der Token muss zu `MCP_HTTP_BEARER_TOKEN` passen.
 
 In Claude wird derselbe Remote-MCP-Endpunkt verwendet. Der praktische „Trick“ ist: Claude muss keinen lokalen Prozess starten und keine EspoCRM-Zugangsdaten kennen; Claude spricht nur mit dem per Caddy geschützten MCP-Endpunkt. Die EspoCRM-Zugangsdaten bleiben ausschließlich in `.env` auf dem Server.
 
